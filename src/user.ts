@@ -18,21 +18,27 @@ export function getUserData(): { userName: string; avatarUrl: string } {
   
 }
 
-export function getFavoritesAmount(): number {
-  const favoritesAmountData = parseInt(localStorage.getItem("favoritesAmount"));
+export function getFavoritesAmount(key = "favoriteItems"): number {
+  const localStorageItem = localStorage.getItem(key);
 
-  if (typeof favoritesAmountData === "number") {
-    return favoritesAmountData;
+  if (localStorageItem === null) {
+    return;
   }
 
-  return 0;
+  const data: unknown = JSON.parse(localStorageItem);
+
+  if (Array.isArray(data)) {
+    return data.length;
+  }
+
+  return;
 }
 
-export function renderUserBlock (
-  userName: string,
-  linkToUserAvatar: string,
-  favoriteItemsAmount?: number
-) {
+export function renderUserBlock () {
+  const user = getUserData();
+  const userName = user.userName;
+  const linkToUserAvatar = user.avatarUrl;
+  const favoriteItemsAmount = getFavoritesAmount();
   const favoritesCaption = favoriteItemsAmount ? favoriteItemsAmount : "ничего нет"
   const hasFavoriteItems = favoriteItemsAmount ? true : false
 

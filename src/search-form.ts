@@ -1,29 +1,29 @@
 import { renderBlock } from "./lib.js";
 
 export function renderSearchFormBlock(
-  dateFrom: string = null,
-  dateTo: string = null
+  checkInDate: string = null,
+  checkOutDate: string = null
 ) {
   const minDate = new Date();
   const maxDate = new Date(minDate.getFullYear(), minDate.getMonth() + 2, 0);
 
-  let currentDateFrom = dateFrom;
-  let currentDateTo = dateTo;
+  let currentcheckInDate = checkInDate;
+  let currentcheckOutDate = checkOutDate;
 
-  if (Date.parse(dateFrom) < Date.parse(formatDate(minDate))) {
-    const defaultDateFrom = new Date(minDate.setDate(minDate.getDate() + 1));
-    currentDateFrom = formatDate(defaultDateFrom);
+  if (Date.parse(checkInDate) < Date.parse(formatDate(minDate))) {
+    const defaultcheckInDate = new Date(minDate.setDate(minDate.getDate() + 1));
+    currentcheckInDate = formatDate(defaultcheckInDate);
   }
 
   if (
-    Date.parse(dateTo) > Date.parse(formatDate(maxDate)) ||
-    Date.parse(dateTo) < Date.parse(formatDate(minDate))
+    Date.parse(checkOutDate) > Date.parse(formatDate(maxDate)) ||
+    Date.parse(checkOutDate) < Date.parse(formatDate(minDate))
   ) {
-    const defaultDateFrom = new Date(dateFrom);
-    const defaultDateTo = new Date(
-      defaultDateFrom.setDate(defaultDateFrom.getDate() + 2)
+    const defaultcheckInDate = new Date(currentcheckInDate);
+    const defaultcheckOutDate = new Date(
+      defaultcheckInDate.setDate(defaultcheckInDate.getDate() + 2)
     );
-    currentDateTo = formatDate(defaultDateTo);
+    currentcheckOutDate = formatDate(defaultcheckOutDate);
   }
 
   function formatDate(date) {
@@ -39,6 +39,8 @@ export function renderSearchFormBlock(
 
     return yyyy + "-" + mm + "-" + dd;
   }
+
+  
 
   renderBlock(
     "search-form-block",
@@ -62,7 +64,7 @@ export function renderSearchFormBlock(
             <input
               id="check-in-date"
               type="date"
-              value=${currentDateFrom}
+              value=${currentcheckInDate}
               min=${formatDate(minDate)}
               max="${formatDate(maxDate)}"
               name="checkin"
@@ -73,7 +75,7 @@ export function renderSearchFormBlock(
             <input
               id="check-out-date"
               type="date"
-              value=${currentDateTo}
+              value=${currentcheckOutDate}
               min=${formatDate(minDate)}
               max="${formatDate(maxDate)}"
               name="checkout"
