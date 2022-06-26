@@ -4,15 +4,17 @@ import {
   createListContent,
   renderSearchResultsBlock,
 } from "./search-results.js";
+import { FlatRentSdk } from "./flat-rent-sdk.js";
 import { FavoritePlace } from "./types.js";
 import { renderUserBlock } from "./user.js";
+
 
 export function toggleFavoriteItem(e: Event): void {
   if (!(e.currentTarget instanceof HTMLDivElement)) {
     return;
   }
 
-  const id = Number(e.currentTarget.dataset.id);
+  const id = e.currentTarget.dataset.id;
   const name = e.currentTarget.dataset.name;
   const image = e.currentTarget.nextElementSibling.getAttribute("src");
   const currentPlace: FavoritePlace = {
@@ -27,7 +29,7 @@ export function toggleFavoriteItem(e: Event): void {
     const favoriteItems: unknown = JSON.parse(localStorageItem);
 
     if (Array.isArray(favoriteItems)) {
-      const favoriteItem = favoriteItems.find((item) => item.id === id);
+      const favoriteItem = favoriteItems.find((item) => item.id == id);
 
       if (favoriteItem) {
         removeFavoriteItemFromStorage(favoriteItem, favoriteItems);
@@ -67,7 +69,7 @@ function addFavoriteItemToStorage(
   localStorage.setItem("favoriteItems", JSON.stringify(favoriteItems));
 }
 
-export const showSearchResult: searchCallback = (error, result): void => {
+export const getSearchResult: searchCallback = (error, result): void => {
   if (error == null && result != null) {
     renderSearchResultsBlock(createListContent(result));
 
@@ -78,7 +80,42 @@ export const showSearchResult: searchCallback = (error, result): void => {
   } else {
     renderEmptyOrErrorSearchBlock(error);
   }
-};
+}
+
+export function searchFunctionFlatRent(
+  reqData: SearchFormData,
+  callback: searchCallback
+) {
+  const buttons = document.querySelectorAll(".favorites");
+  buttons.forEach((button) => {
+    button.removeEventListener("click", toggleFavoriteItem);
+  });
+  const sdk = new FlatRentSdk();
+  const sdkData = {
+    city: reqData.city,
+    checkInDate: reqData.checkInDate,
+    checkOutDate: reqData.checkOutDate,
+    priceLimit: reqData.maxPrice,
+  };
+  sdk.search(sdkData).then((data) => {
+    const sdkResult = data;
+    const result = sdkResult.map((e) => ({
+      id: e.id,
+      name: e.title,
+      description: e.details,
+      image: e.photos[0].replace(/http:\/\/localhost:3040/, ""),
+      remoteness: 0,
+      bookedDates: e.bookedDates.map((b) => b.getTime()),
+      price: e.totalPrice,
+    }));
+    if (result.length) {
+      callback(null, result);
+    } else {
+      callback("Ничего не найдено. Попробуйте изменить параметры поиска.");
+    }
+  });
+
+}
 
 export async function searchFunction(
   reqData: SearchFormData,
@@ -136,6 +173,14 @@ export function search() {
     ),
     maxPrice: document.forms["search-form"].elements["max-price"].value,
   };
-  searchFunction(searchData, showSearchResult);
+  const provider: string =
+    document.forms["search-block"].elements["provider"].value;
+
+  if (provider == "flat-rent") {
+    searchFunctionFlatRent(searchData, getSearchResult);
+    return;
+  }
+
+  searchFunction(searchData, getSearchResult);
   
 }

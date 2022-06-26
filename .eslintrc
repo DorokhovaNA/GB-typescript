@@ -2,16 +2,20 @@
 	"root": true,
 	"parser": "@typescript-eslint/parser",
 	"plugins": [
-	"@typescript-eslint"
+	  "@typescript-eslint"
 	],
 	"extends": [
-	"eslint:recommended",
-	"plugin:@typescript-eslint/eslint-recommended",
-	"plugin:@typescript-eslint/recommended"
+    "eslint:recommended",
+    "plugin:@typescript-eslint/eslint-recommended",
+    "plugin:@typescript-eslint/recommended"
 	],
+  "env": {
+    "es6": true,
+    "browser": true,
+    "node": true
+  },
 	"rules": {
 	"quotes": ["error", "double"],
 	"indent": ["error", 2]
 	}
 }
-	

@@ -1,10 +1,10 @@
 {
 	"compilerOptions": {
-	"outDir": "public/scripts",
-	"target": "es2015",
-	"module": "es2015",
-	"moduleResolution": "node",
-	"allowJs": true
+		"outDir": "public/scripts",
+		"target": "es2015",
+		"module": "es2015",
+		"moduleResolution": "node",
+		"allowJs": true
 	},
 	"include": [
 		"src/**/*"
