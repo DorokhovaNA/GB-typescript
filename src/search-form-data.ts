@@ -4,10 +4,9 @@ import {
   createListContent,
   renderSearchResultsBlock,
 } from "./search-results.js";
-import { FlatRentSdk } from "./flat-rent-sdk.js";
 import { FavoritePlace } from "./types.js";
 import { renderUserBlock } from "./user.js";
-
+import { API } from "./API.js";
 
 export function toggleFavoriteItem(e: Event): void {
   if (!(e.currentTarget instanceof HTMLDivElement)) {
@@ -43,7 +42,6 @@ export function toggleFavoriteItem(e: Event): void {
     localStorage.setItem("favoriteItems", JSON.stringify([currentPlace]));
     e.currentTarget.classList.add("active");
   }
-
   renderUserBlock();
 }
 
@@ -82,105 +80,37 @@ export const getSearchResult: searchCallback = (error, result): void => {
   }
 }
 
-export function searchFunctionFlatRent(
-  reqData: SearchFormData,
-  callback: searchCallback
-) {
-  const buttons = document.querySelectorAll(".favorites");
-  buttons.forEach((button) => {
-    button.removeEventListener("click", toggleFavoriteItem);
-  });
-  const sdk = new FlatRentSdk();
-  const sdkData = {
-    city: reqData.city,
-    checkInDate: reqData.checkInDate,
-    checkOutDate: reqData.checkOutDate,
-    priceLimit: reqData.maxPrice,
-  };
-  sdk.search(sdkData).then((data) => {
-    const sdkResult = data;
-    const result = sdkResult.map((e) => ({
-      id: e.id,
-      name: e.title,
-      description: e.details,
-      image: e.photos[0].replace(/http:\/\/localhost:3040/, ""),
-      remoteness: 0,
-      bookedDates: e.bookedDates.map((b) => b.getTime()),
-      price: e.totalPrice,
-    }));
-    if (result.length) {
-      callback(null, result);
-    } else {
-      callback("Ничего не найдено. Попробуйте изменить параметры поиска.");
-    }
-  });
-
-}
-
-export async function searchFunction(
-  reqData: SearchFormData,
-  callback: searchCallback
-) {
-  const buttons = document.querySelectorAll(".favorites");
-  buttons.forEach((button) => {
-    button.removeEventListener("click", toggleFavoriteItem);
-  });
-
-  let url =
-    "http://localhost:3030/places?" +
-    `checkInDate=${checkOutDateUnixStamp(reqData.checkInDate)}&` +
-    `checkOutDate=${checkOutDateUnixStamp(reqData.checkOutDate)}&` +
-    "coordinates=59.9386,30.3141";
-
-  if (reqData.maxPrice != null) {
-    url += `&maxPrice=${reqData.maxPrice}`;
-  }
-
-  try {
-    const response = await fetch(url);
-    const result = await response.json();
-
-    if (response.status === 200) {
-      if (result.length) {
-        callback(null, result);
-      } else {
-        callback("Ничего не найдено. Попробуйте изменить параметры поиска.");
-      }
-    } else {
-      callback(result.message);
-    }
-  } catch (error) {
-    console.error(error);
-  }
-}
-
 export function checkOutDateUnixStamp(date: Date) {
   return date.getTime() / 1000;
 }
 
 export function search() {
-  document.getElementById("search-form-block").addEventListener("submit", (e) => {
+  const form = document.getElementById("search-form-block");
+  form.onsubmit = async function (e) {
     e.preventDefault();
-  })
-  
-  const searchData: SearchFormData = {
-    city: document.forms["search-form"].elements["city"].value,
-    checkInDate: new Date(
-      document.forms["search-form"].elements["check-in-date"].value
-    ),
-    checkOutDate: new Date(
-      document.forms["search-form"].elements["check-out-date"].value
-    ),
-    maxPrice: document.forms["search-form"].elements["max-price"].value,
-  };
-  const provider: string =
-    document.forms["search-block"].elements["provider"].value;
+    const searchData: SearchFormData = {
+      city: document.forms["search-form"].elements["city"].value,
+      checkInDate: new Date(
+        document.forms["search-form"].elements["check-in-date"].value
+      ),
+      checkOutDate: new Date(
+        document.forms["search-form"].elements["check-out-date"].value
+      ),
+      maxPrice: document.forms["search-form"].elements["max-price"].value,
+    };
+    const provider: string =
+      document.forms["search-form"].elements["provider"].value;
 
-  if (provider == "flat-rent") {
-    searchFunctionFlatRent(searchData, getSearchResult);
-    return;
-  }
-
-  searchFunction(searchData, getSearchResult);
-  
+    const api = new API();
+    const data = await api.get(searchData, provider);
+    
+    
+    if (data.length) {
+      getSearchResult(null, data);
+    } else {
+      getSearchResult(
+        "Ничего не найдено. Попробуйте изменить параметры поиска."
+      );
+    }
+  } 
 }
