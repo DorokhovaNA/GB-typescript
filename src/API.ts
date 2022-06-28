@@ -23,7 +23,9 @@ export class API {
         description: e.details,
         image: e.photos[0].replace(/http:\/\/localhost:3040/, ""),
         remoteness: 0,
-        bookedDates: e.bookedDates.map((b) => checkOutDateUnixStamp(b)),
+        bookedDates: e.bookedDates 
+          ? e.bookedDates.map((b) => checkOutDateUnixStamp(b))
+          : [],
         price: e.totalPrice,
       }));
       return result;

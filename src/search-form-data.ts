@@ -15,33 +15,46 @@ export function toggleFavoriteItem(e: Event): void {
 
   const id = e.currentTarget.dataset.id;
   const name = e.currentTarget.dataset.name;
-  const image = e.currentTarget.nextElementSibling.getAttribute("src");
-  const currentPlace: FavoritePlace = {
-    id,
-    name,
-    image,
-  };
+  const image = e.currentTarget.dataset.image;
+  let currentPlace: FavoritePlace;
+  
+  if (id != null && name != null && image != null) {
+    currentPlace = {
+      id,
+      name,
+      image,
+    };
+  } else {
+    currentPlace = {
+      id: -1,
+      name: "",
+      image: "",
+    };
+  }
 
   const localStorageItem = localStorage.getItem("favoriteItems");
 
-  if (localStorageItem) {
-    const favoriteItems: unknown = JSON.parse(localStorageItem);
-
-    if (Array.isArray(favoriteItems)) {
-      const favoriteItem = favoriteItems.find((item) => item.id == id);
-
-      if (favoriteItem) {
-        removeFavoriteItemFromStorage(favoriteItem, favoriteItems);
-        e.currentTarget.classList.remove("active");
-      } else {
-        addFavoriteItemToStorage(currentPlace, favoriteItems);
-        e.currentTarget.classList.add("active");
+  if (currentPlace.id != -1) {
+    if (localStorageItem) {
+      const favoriteItems: unknown = JSON.parse(localStorageItem);
+  
+      if (Array.isArray(favoriteItems)) {
+        const favoriteItem = favoriteItems.find((item) => item.id == id);
+  
+        if (favoriteItem) {
+          removeFavoriteItemFromStorage(favoriteItem, favoriteItems);
+          e.currentTarget.classList.remove("active");
+        } else {
+          addFavoriteItemToStorage(currentPlace, favoriteItems);
+          e.currentTarget.classList.add("active");
+        }
       }
+    } else {
+      localStorage.setItem("favoriteItems", JSON.stringify([currentPlace]));
+      e.currentTarget.classList.add("active");
     }
-  } else {
-    localStorage.setItem("favoriteItems", JSON.stringify([currentPlace]));
-    e.currentTarget.classList.add("active");
   }
+  
   renderUserBlock();
 }
 
@@ -67,8 +80,8 @@ function addFavoriteItemToStorage(
   localStorage.setItem("favoriteItems", JSON.stringify(favoriteItems));
 }
 
-export const getSearchResult: searchCallback = (error, result): void => {
-  if (error == null && result != null) {
+export const getSearchResult: searchCallback = (error = "", result): void => {
+  if (error == "" && result != null) {
     renderSearchResultsBlock(createListContent(result));
 
     const buttons = document.querySelectorAll(".favorites");
@@ -85,32 +98,37 @@ export function checkOutDateUnixStamp(date: Date) {
 }
 
 export function search() {
-  const form = document.getElementById("search-form-block");
-  form.onsubmit = async function (e) {
-    e.preventDefault();
-    const searchData: SearchFormData = {
-      city: document.forms["search-form"].elements["city"].value,
-      checkInDate: new Date(
-        document.forms["search-form"].elements["check-in-date"].value
-      ),
-      checkOutDate: new Date(
-        document.forms["search-form"].elements["check-out-date"].value
-      ),
-      maxPrice: document.forms["search-form"].elements["max-price"].value,
-    };
-    const provider: string =
-      document.forms["search-form"].elements["provider"].value;
-
-    const api = new API();
-    const data = await api.get(searchData, provider);
-    
-    
-    if (data.length) {
-      getSearchResult(null, data);
-    } else {
-      getSearchResult(
-        "Ничего не найдено. Попробуйте изменить параметры поиска."
-      );
+  const form: HTMLElement | null = document.getElementById("search-form-block");
+  if (form) {
+    form.onsubmit = async function (e) {
+      e.preventDefault();
+      const searchData: SearchFormData = {
+        city: (<HTMLInputElement>(
+          document.forms[<any>"search-form"].elements[<any>"city"])).value,
+        checkInDate: new Date((<HTMLInputElement>(
+          document.forms[<any>"search-form"].elements[<any>"check-in-date"])).value
+        ),
+        checkOutDate: new Date((<HTMLInputElement>(
+          document.forms[<any>"search-form"].elements[<any>"check-out-date"])).value
+        ),
+        maxPrice: +(<HTMLInputElement>(
+          document.forms[<any>"search-form"].elements[<any>"max-price"])).value,
+      };
+      const provider: string = (<HTMLInputElement>(
+        document.forms[<any>"search-form"].elements[<any>"provider"])).value;
+  
+      const api = new API();
+      const data = await api.get(searchData, provider);
+      
+      
+      if (data.length) {
+        getSearchResult("", data);
+      } else {
+        getSearchResult(
+          "Ничего не найдено. Попробуйте изменить параметры поиска."
+        );
+      }
     }
-  } 
+  }
+   
 }

@@ -26,9 +26,9 @@ export function renderEmptyOrErrorSearchBlock (reasonMessage: string) {
 }
 
 export function createListContent(places: Place[]) {
-  const items = [];
+  const items: string[] = [];
   const localStorageItem = localStorage.getItem("favoriteItems");
-  let favoriteItems = [];
+  let favoriteItems: Place[] = [];
 
   if (localStorageItem) {
     const localStorageData: unknown = JSON.parse(localStorageItem);

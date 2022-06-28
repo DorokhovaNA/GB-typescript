@@ -1,9 +1,6 @@
 import { renderBlock } from "./lib.js";
 
-export function renderSearchFormBlock(
-  checkInDate: string = null,
-  checkOutDate: string = null
-) {
+export function renderSearchFormBlock(checkInDate: string, checkOutDate: string) {
   const minDate = new Date();
   const maxDate = new Date(minDate.getFullYear(), minDate.getMonth() + 2, 0);
 
@@ -26,12 +23,12 @@ export function renderSearchFormBlock(
     currentcheckOutDate = formatDate(defaultcheckOutDate);
   }
 
-  function formatDate(date) {
-    let dd = date.getDate();
+  function formatDate(date: Date) {
+    let dd: string | number = date.getDate();
 
     if (dd < 10) dd = "0" + dd;
 
-    let mm = date.getMonth() + 1;
+    let mm: string | number = date.getMonth() + 1;
 
     if (mm < 10) mm = "0" + mm;
 
@@ -39,8 +36,6 @@ export function renderSearchFormBlock(
 
     return yyyy + "-" + mm + "-" + dd;
   }
-
-  
 
   renderBlock(
     "search-form-block",
